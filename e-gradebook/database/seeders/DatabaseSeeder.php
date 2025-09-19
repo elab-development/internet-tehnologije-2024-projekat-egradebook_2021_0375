@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\User;
+//use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,11 +15,39 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        User::updateOrCreate(
+            ['email' => 'admin@eschool.com'],
+            [
+                'name' => 'System Admin',
+                'password' => Hash::make('password'),
+                'role' => User::ROLE_ADMIN,
+                'email_verified_at' => now(),
+            ]
+        );
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $teachers = collect([
+            ['name' => 'Ana Petrović',    'email' => 'ana.petrovic@eschool.com'],
+            ['name' => 'Marko Jovanović', 'email' => 'marko.jovanovic@eschool.com'],
+            ['name' => 'Ivana Kovač',     'email' => 'ivana.kovac@eschool.com'],
+        ])->map(function ($t) {
+            return User::updateOrCreate(
+                ['email' => $t['email']],
+                [
+                    'name' => $t['name'],
+                    'password' => Hash::make('password'),
+                    'role' => User::ROLE_TEACHER,
+                    'email_verified_at' => now(),
+                ]
+            );
+        });
+
+        User::factory()->count(20)->student()->create([
+            'password' => Hash::make('password'),
+        ]);
+
+        $this->call([
+            CourseSeeder::class,
+            GradeSeeder::class,
+        ]);
     }
 }
