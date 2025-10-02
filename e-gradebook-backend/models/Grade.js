@@ -31,5 +31,6 @@ const gradeSchema = new mongoose.Schema(
 
 // brz pregled ocena po učeniku/predmetu
 gradeSchema.index({ student: 1, subject: 1, date: -1 });
-
+gradeSchema.index({ teacher: 1, date: -1 });
+gradeSchema.index({ subject: 1, date: -1 });
 export const Grade = mongoose.model('Grade', gradeSchema);
