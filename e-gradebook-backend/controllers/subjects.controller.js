@@ -28,6 +28,7 @@ export async function listSubjects(req, res) {
       1
     );
     const q = (req.query.q ?? '').trim();
+    const teacherParam = (req.query.teacher ?? '').trim();
 
     const filter = q
       ? {
@@ -37,6 +38,13 @@ export async function listSubjects(req, res) {
           ],
         }
       : {};
+      if (teacherParam) {
+      const teacherId = teacherParam === 'me' ? req.user.id : teacherParam;
+      if (!mongoose.Types.ObjectId.isValid(teacherId)) {
+        return res.status(400).json({ message: 'Invalid teacher parameter.' });
+      }
+      filter.teachers = teacherId;
+    }
 
     const [items, total] = await Promise.all([
       Subject.find(filter)
