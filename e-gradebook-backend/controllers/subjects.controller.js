@@ -38,7 +38,8 @@ export async function listSubjects(req, res) {
           ],
         }
       : {};
-      if (teacherParam) {
+
+    if (teacherParam) {
       const teacherId = teacherParam === 'me' ? req.user.id : teacherParam;
       if (!mongoose.Types.ObjectId.isValid(teacherId)) {
         return res.status(400).json({ message: 'Invalid teacher parameter.' });

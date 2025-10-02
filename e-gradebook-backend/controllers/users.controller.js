@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { User } from '../models/User.js';
+
 function mapRef(p) {
   if (!p) return null;
   if (typeof p === 'object' && (p.fullName || p.email || p.role)) {
@@ -12,6 +13,7 @@ function mapRef(p) {
   }
   return String(p);
 }
+
 function toPublicUser(u) {
   return {
     id: u._id?.toString?.() ?? u.id,
@@ -19,7 +21,7 @@ function toPublicUser(u) {
     email: u.email,
     role: u.role,
     classLabel: u.classLabel,
-   parents: (u.parents || []).map(mapRef).filter(Boolean),
+    parents: (u.parents || []).map(mapRef).filter(Boolean),
     children: (u.children || []).map(mapRef).filter(Boolean),
   };
 }
@@ -37,7 +39,7 @@ const diff = (a, b) => {
 
 export async function listUsers(req, res) {
   try {
-     const requesterRole = req.user.role;
+    const requesterRole = req.user.role;
 
     const page = Math.max(parseInt(req.query.page ?? '1', 10), 1);
     const limit = Math.max(
@@ -48,13 +50,15 @@ export async function listUsers(req, res) {
     const roleParam = req.query.role?.trim();
 
     const filter = {};
-     if (requesterRole === 'admin') {
+
+    if (requesterRole === 'admin') {
       if (roleParam) filter.role = roleParam;
     } else if (requesterRole === 'professor') {
       filter.role = 'student';
     } else {
       return res.status(403).json({ message: 'Forbidden' });
     }
+
     if (q) {
       filter.$or = [
         { fullName: { $regex: q, $options: 'i' } },
@@ -64,8 +68,8 @@ export async function listUsers(req, res) {
 
     const [items, total] = await Promise.all([
       User.find(filter)
-       .select('fullName email role classLabel parents children')
-       .sort({ fullName: 1 })
+        .select('fullName email role classLabel parents children')
+        .sort({ fullName: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
@@ -74,14 +78,16 @@ export async function listUsers(req, res) {
 
     return res.json({
       message: 'Users fetched',
-       items: items.map(toPublicUser),
+      items: items.map(toPublicUser),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (err) {
     console.error('USERS_LIST_ERROR', err);
     return res.status(500).json({ message: 'Failed to fetch users' });
   }
-}export async function getUser(req, res) {
+}
+
+export async function getUser(req, res) {
   try {
     const { id } = req.params;
     const user = await User.findById(id)

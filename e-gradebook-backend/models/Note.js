@@ -26,4 +26,5 @@ const noteSchema = new mongoose.Schema(
 noteSchema.index({ student: 1, createdAt: -1 });
 noteSchema.index({ createdAt: -1 });
 noteSchema.index({ visibility: 1, createdAt: -1 });
+
 export const Note = mongoose.model('Note', noteSchema);

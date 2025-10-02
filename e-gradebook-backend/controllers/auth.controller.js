@@ -32,18 +32,15 @@ export async function register(req, res) {
         .json({ message: 'fullName, email and password are required.' });
     }
     if (!ROLES.includes(role)) {
-      
       return res.status(400).json({ message: 'Unknown role.' });
     }
     if (role === 'admin') {
       return res.status(403).json({
-       
         message: 'Creating an admin account via this route is not allowed.',
       });
     }
 
     const existing = await User.findOne({ email });
-    
     if (existing) {
       return res.status(409).json({ message: 'Email is already registered.' });
     }
@@ -76,7 +73,7 @@ export async function login(req, res) {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) {
-     return res
+      return res
         .status(400)
         .json({ message: 'email and password are required.' });
     }
