@@ -1,5 +1,17 @@
 import mongoose from 'mongoose';
 import { User } from '../models/User.js';
+function mapRef(p) {
+  if (!p) return null;
+  if (typeof p === 'object' && (p.fullName || p.email || p.role)) {
+    return {
+      id: String(p._id ?? p.id),
+      fullName: p.fullName,
+      email: p.email,
+      role: p.role,
+    };
+  }
+  return String(p);
+}
 function toPublicUser(u) {
   return {
     id: u._id?.toString?.() ?? u.id,
@@ -7,16 +19,8 @@ function toPublicUser(u) {
     email: u.email,
     role: u.role,
     classLabel: u.classLabel,
-    parents: (u.parents || []).map((p) =>
-      typeof p === 'string'
-        ? p
-        : { id: p._id, fullName: p.fullName, email: p.email, role: p.role }
-    ),
-    children: (u.children || []).map((c) =>
-      typeof c === 'string'
-        ? c
-        : { id: c._id, fullName: c.fullName, email: c.email, role: c.role }
-    ),
+   parents: (u.parents || []).map(mapRef).filter(Boolean),
+    children: (u.children || []).map(mapRef).filter(Boolean),
   };
 }
 
@@ -53,7 +57,12 @@ export async function listUsers(req, res) {
     const [items, total] = await Promise.all([
       User.find(filter)
        .select('fullName email role classLabel parents children')
-        .sort({ fullName: 1 })
+       .populate({ path: 'parents', select: 'fullName email role' })
+        .populate({
+          path: 'children',
+          select: 'fullName email role classLabel',
+        }) 
+       .sort({ fullName: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
