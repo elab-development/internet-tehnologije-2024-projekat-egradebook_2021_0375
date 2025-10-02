@@ -29,20 +29,24 @@ export async function register(req, res) {
     if (!fullName || !email || !password) {
       return res
         .status(400)
-        .json({ message: 'fullName, email i password su obavezni.' });
+        .json({ message: 'fullName, email and password are required.' });
     }
     if (!ROLES.includes(role)) {
-      return res.status(400).json({ message: 'Nepoznata uloga.' });
+      
+      return res.status(400).json({ message: 'Unknown role.' });
     }
     if (role === 'admin') {
       return res.status(403).json({
-        message: 'Kreiranje admin naloga nije dozvoljeno preko ove rute.',
+       
+        message: 'Creating an admin account via this route is not allowed.',
       });
     }
 
     const existing = await User.findOne({ email });
-    if (existing)
-      return res.status(409).json({ message: 'Email je već registrovan.' });
+    
+    if (existing) {
+      return res.status(409).json({ message: 'Email is already registered.' });
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -72,7 +76,9 @@ export async function login(req, res) {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) {
-      return res.status(400).json({ message: 'email i password su obavezni.' });
+     return res
+        .status(400)
+        .json({ message: 'email and password are required.' });
     }
 
     const user = await User.findOne({ email });
