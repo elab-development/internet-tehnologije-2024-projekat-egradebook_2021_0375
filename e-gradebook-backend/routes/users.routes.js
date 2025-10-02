@@ -9,10 +9,10 @@ import {
 } from '../controllers/users.controller.js';
 const router = express.Router();
 
-router.use(requireAuth, requireRole('admin'));
+router.use(requireAuth);
 
 router.get('/', listUsers);
-router.get('/:id', getUser);
-router.patch('/:id/parents', setParents);
-router.patch('/:id/children', setChildren);
+router.get('/:id', requireRole('admin'), getUser);
+router.patch('/:id/parents', requireRole('admin'), setParents);
+router.patch('/:id/children', requireRole('admin'), setChildren);
 export default router;

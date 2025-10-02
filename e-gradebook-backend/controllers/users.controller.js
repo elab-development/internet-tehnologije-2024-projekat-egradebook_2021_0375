@@ -37,16 +37,24 @@ const diff = (a, b) => {
 
 export async function listUsers(req, res) {
   try {
+     const requesterRole = req.user.role;
+
     const page = Math.max(parseInt(req.query.page ?? '1', 10), 1);
     const limit = Math.max(
       Math.min(parseInt(req.query.limit ?? '25', 10), 100),
       1
     );
     const q = (req.query.q ?? '').trim();
-    const role = req.query.role;
+    const roleParam = req.query.role?.trim();
 
     const filter = {};
-    if (role) filter.role = role;
+     if (requesterRole === 'admin') {
+      if (roleParam) filter.role = roleParam;
+    } else if (requesterRole === 'professor') {
+      filter.role = 'student';
+    } else {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
     if (q) {
       filter.$or = [
         { fullName: { $regex: q, $options: 'i' } },
@@ -57,11 +65,6 @@ export async function listUsers(req, res) {
     const [items, total] = await Promise.all([
       User.find(filter)
        .select('fullName email role classLabel parents children')
-       .populate({ path: 'parents', select: 'fullName email role' })
-        .populate({
-          path: 'children',
-          select: 'fullName email role classLabel',
-        }) 
        .sort({ fullName: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
